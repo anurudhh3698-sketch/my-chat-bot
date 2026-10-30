@@ -1,0 +1,650 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#09090f">
+<title>Anurudh AI - Smart Chatbot</title>
+
+<style>
+*{box-sizing:border-box}
+:root{
+ --bg:#09090f;--panel:#11111b;--panel2:#191927;
+ --border:#29293b;--text:#f5f5fa;--muted:#9696aa;
+ --accent:#9875ff;--accent2:#7050e9;
+}
+body{margin:0;background:var(--bg);color:var(--text);
+ font-family:Inter,system-ui,Arial,sans-serif;height:100vh;overflow:hidden}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.app{display:flex;height:100dvh;width:100%}
+.sidebar{width:270px;background:#0d0d15;border-right:1px solid var(--border);
+ padding:20px;display:flex;flex-direction:column;gap:18px;flex-shrink:0}
+.brand{display:flex;align-items:center;gap:12px;font-size:19px;font-weight:800}
+.logo{width:39px;height:39px;border-radius:13px;background:linear-gradient(135deg,#a98bff,#6844db);
+ display:grid;place-items:center;font-size:21px}
+.new-chat{background:var(--accent);border:0;color:white;padding:13px;
+ border-radius:12px;font-weight:700}
+.new-chat:hover,.send:hover{background:var(--accent2)}
+.side-title{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1.5px}
+.history{overflow-y:auto;flex:1}
+.history-item{display:flex;align-items:center;gap:8px;padding:11px;
+ border-radius:9px;color:#c7c7d4;font-size:13px;cursor:pointer;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-item:hover,.history-item.active{background:var(--panel2)}
+.side-bottom{border-top:1px solid var(--border);padding-top:14px}
+.key-status{font-size:12px;color:var(--muted);margin:8px 0 12px}
+.small-btn{background:var(--panel2);border:1px solid var(--border);
+ color:var(--text);border-radius:9px;padding:10px;width:100%;margin-top:7px}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:66px;border-bottom:1px solid var(--border);
+ display:flex;align-items:center;justify-content:space-between;padding:0 23px;gap:10px}
+.top-left{display:flex;align-items:center;gap:12px}
+.model-select{background:var(--panel2);border:1px solid var(--border);
+ color:var(--text);padding:9px 12px;border-radius:10px;max-width:230px}
+.top-actions{display:flex;align-items:center;gap:8px}
+.icon-btn{border:1px solid var(--border);background:var(--panel2);
+ color:var(--text);border-radius:9px;padding:9px 12px}
+.mobile-brand{display:none}
+.chat-area{flex:1;overflow-y:auto;scroll-behavior:smooth}
+.messages{max-width:850px;margin:auto;padding:30px 25px 25px}
+.welcome{text-align:center;padding:12vh 10px 30px}
+.welcome-logo{font-size:45px;margin-bottom:15px}
+.welcome h1{font-size:clamp(26px,4vw,39px);margin:0 0 12px}
+.gradient{background:linear-gradient(90deg,#b69aff,#8a67ff);
+ -webkit-background-clip:text;background-clip:text;color:transparent}
+.welcome p{color:var(--muted);font-size:14px}
+.suggestions{display:grid;grid-template-columns:repeat(2,1fr);
+ gap:10px;max-width:590px;margin:28px auto}
+.suggestion{background:var(--panel);border:1px solid var(--border);
+ color:var(--text);padding:16px;text-align:left;border-radius:13px;font-size:13px}
+.suggestion:hover{border-color:var(--accent)}
+.message{display:flex;gap:13px;margin:24px 0;align-items:flex-start}
+.avatar{width:34px;height:34px;border-radius:11px;display:grid;
+ place-items:center;flex-shrink:0;background:#262238;font-size:16px}
+.message.user .avatar{background:#40306c}
+.message-body{min-width:0;flex:1}
+.message-label{font-size:12px;color:var(--muted);margin:4px 0 9px}
+.message-content{font-size:14px;line-height:1.8;white-space:pre-wrap;
+ overflow-wrap:anywhere;color:#e4e4ed}
+.message-content code{background:#29263a;padding:2px 5px;border-radius:4px}
+.message-content pre{background:#09090f;border:1px solid var(--border);
+ padding:14px;border-radius:10px;overflow:auto;white-space:pre}
+.message-content pre code{background:none;padding:0}
+.message-actions{display:flex;gap:7px;margin-top:10px}
+.message-actions button{background:transparent;border:0;color:var(--muted);
+ font-size:12px;padding:5px}
+.message-actions button:hover{color:white}
+.typing{color:var(--muted);font-size:13px}
+.input-section{padding:10px 20px 17px}
+.composer{max-width:850px;margin:auto;background:var(--panel);
+ border:1px solid #38334d;border-radius:17px;padding:12px 13px;
+ box-shadow:0 8px 35px #0005}
+#prompt{width:100%;resize:none;background:transparent;border:0;outline:0;
+ color:var(--text);font-size:14px;min-height:52px;max-height:180px;
+ padding:8px;line-height:1.6}
+.composer-bottom{display:flex;align-items:center;justify-content:space-between}
+.input-hint{color:var(--muted);font-size:11px;padding-left:7px}
+.send{background:var(--accent);border:0;color:white;border-radius:10px;
+ width:40px;height:38px;font-size:20px}
+.send:disabled{opacity:.5;cursor:not-allowed}
+.disclaimer{text-align:center;color:#77778c;font-size:10px;
+ max-width:850px;margin:9px auto 0}
+.modal-bg{position:fixed;inset:0;background:#000b;display:none;
+ align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal-bg.open{display:flex}
+.modal{width:100%;max-width:430px;background:#151520;border:1px solid var(--border);
+ border-radius:17px;padding:23px}
+.modal h2{margin:0 0 8px;font-size:21px}
+.modal p{color:var(--muted);font-size:12px;line-height:1.6}
+.field{margin-top:17px}
+.field label{display:block;font-size:12px;margin-bottom:8px;color:#c6c6d5}
+.field input{width:100%;padding:12px;background:#0c0c14;
+ border:1px solid var(--border);border-radius:10px;color:white;outline:none}
+.field input:focus{border-color:var(--accent)}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+.primary{background:var(--accent);color:white;border:0;border-radius:9px;
+ padding:11px 15px;font-weight:700;flex:1}
+.secondary{background:var(--panel2);color:white;border:1px solid var(--border);
+ border-radius:9px;padding:11px 15px}
+.checkbox{display:flex;align-items:center;gap:9px;margin-top:13px;
+ color:var(--muted);font-size:12px}
+.toast{position:fixed;bottom:25px;left:50%;transform:translateX(-50%);
+ background:#252235;color:white;padding:11px 17px;border-radius:10px;
+ font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:30}
+.toast.show{opacity:1}
+.menu-btn{display:none}
+@media(max-width:700px){
+ .sidebar{position:fixed;z-index:5;top:0;bottom:0;left:-280px;
+ transition:left .25s;width:270px;box-shadow:10px 0 40px #0008}
+ .sidebar.open{left:0}
+ .menu-btn{display:block}
+ .mobile-brand{display:block;font-weight:800;font-size:15px}
+ .topbar{height:59px;padding:0 12px}
+ .messages{padding:17px 13px}
+ .input-section{padding:8px 10px 13px}
+ .welcome{padding-top:12vh}
+ .suggestions{grid-template-columns:1fr}
+ .model-select{max-width:145px;font-size:11px;padding:8px}
+ .hide-mobile{display:none}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<aside class="sidebar" id="sidebar">
+ <div class="brand">
+  <div class="logo">✦</div>
+  <span>Anurudh AI</span>
+ </div>
+
+ <button class="new-chat" onclick="newChat()">＋ New Chat</button>
+
+ <div class="side-title">Recent Conversations</div>
+ <div class="history" id="history"></div>
+
+ <div class="side-bottom">
+  <div class="side-title">Account Settings</div>
+  <div class="key-status" id="keyStatus">● API key not connected</div>
+  <button class="small-btn" onclick="openSettings()">⚙ API Settings</button>
+  <button class="small-btn" onclick="clearAllHistory()">⌫ Clear All History</button>
+ </div>
+</aside>
+
+<main class="main">
+ <header class="topbar">
+  <div class="top-left">
+   <button class="icon-btn menu-btn" onclick="toggleSidebar()">☰</button>
+   <span class="mobile-brand">✦ Anurudh AI</span>
+   <select id="model" class="model-select" title="Select AI model">
+    <optgroup label="GPT Models (OpenAI)">
+     <option value="openai/gpt-oss-20b">GPT OSS 20B</option>
+     <option value="openai/gpt-oss-120b">GPT OSS 120B</option>
+    </optgroup>
+    <optgroup label="Meta Llama Models">
+     <option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
+     <option value="llama-3.1-8b-instant">Llama 3.1 8B</option>
+    </optgroup>
+   </select>
+  </div>
+  <div class="top-actions">
+   <button class="icon-btn hide-mobile" onclick="openSettings()">🔑 API Key</button>
+   <button class="icon-btn" onclick="newChat()">＋</button>
+  </div>
+ </header>
+
+ <section class="chat-area" id="chatArea">
+  <div class="messages" id="messages">
+   <div class="welcome" id="welcome">
+    <div class="welcome-logo">✦</div>
+    <h1>Welcome to <span class="gradient">Anurudh AI</span></h1>
+    <p>Your personal AI assistant. Ask anything and start creating.</p>
+    <div class="suggestions">
+     <button class="suggestion" onclick="useSuggestion('Explain artificial intelligence in simple words')">💡 Explain AI simply</button>
+     <button class="suggestion" onclick="useSuggestion('Write a professional website using HTML CSS and JavaScript')">💻 Build a website</button>
+     <button class="suggestion" onclick="useSuggestion('Give me 5 ideas for a new project')">🚀 Project ideas</button>
+     <button class="suggestion" onclick="useSuggestion('Teach me JavaScript from beginner level')">📚 Learn JavaScript</button>
+    </div>
+   </div>
+  </div>
+ </section>
+
+ <footer class="input-section">
+  <div class="composer">
+   <textarea id="prompt" rows="2" placeholder="Message Anurudh AI..."></textarea>
+   <div class="composer-bottom">
+    <span class="input-hint">Powered by Groq AI</span>
+    <div style="display:flex;gap:8px">
+     <button class="icon-btn" id="stopBtn" onclick="stopGeneration()" style="display:none">■</button>
+     <button class="send" id="sendBtn" onclick="sendMessage()">↑</button>
+    </div>
+   </div>
+  </div>
+  <div class="disclaimer">AI can make mistakes. Verify important information.</div>
+ </footer>
+</main>
+</div>
+
+<!-- API SETTINGS MODAL -->
+<div class="modal-bg" id="settingsModal">
+ <div class="modal">
+  <h2>🔑 Connect Groq API</h2>
+  <p>Enter your Groq API key to start chatting. Get a key from <a href="https://console.groq.com/keys" target="_blank" style="color:#ad92ff">Groq Console ↗</a></p>
+
+  <div class="field">
+   <label for="apiKey">Groq API Key</label>
+   <div style="display:flex;gap:7px">
+    <input id="apiKey" type="password" placeholder="gsk_..." autocomplete="off">
+    <button class="secondary" onclick="toggleKeyVisibility()">Show</button>
+   </div>
+  </div>
+
+  <label class="checkbox">
+   <input type="checkbox" id="rememberKey">
+   Remember key on this device
+  </label>
+  <p>Unchecked: key stays only for this browser session. Checked: key is saved in local storage on this device. Neither option protects it from someone who can access your browser.</p>
+
+  <div class="modal-actions">
+   <button class="secondary" onclick="closeSettings()">Cancel</button>
+   <button class="primary" onclick="saveSettings()">Save API Key</button>
+  </div>
+  <button class="small-btn" onclick="removeKey()">Remove Saved Key</button>
+ </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_URL = "https://api.groq.com/openai/v1/chat/completions";
+
+let apiKey = sessionStorage.getItem("groq_key") || "";
+let currentMessages = [];
+let conversations = [];
+let currentChatId = null;
+let controller = null;
+let busy = false;
+
+const $ = id => document.getElementById(id);
+
+function toast(message) {
+ const el = $("toast");
+ el.textContent = message;
+ el.classList.add("show");
+ setTimeout(() => el.classList.remove("show"), 2500);
+}
+
+function escapeHTML(str) {
+ return String(str).replace(/[&<>"']/g, c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",
+  '"':"&quot;","'":"&#039;"
+ })[c]);
+}
+
+// Basic safe Markdown rendering
+function formatText(text) {
+ let s = escapeHTML(text);
+ s = s.replace(/```([\w-]*)\n?([\s\S]*?)```/g,
+  '<pre><code>$2</code></pre>');
+ s = s.replace(/`([^`]+)`/g,'<code>$1</code>');
+ s = s.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+ s = s.replace(/\*(.*?)\*/g,'<em>$1</em>');
+ s = s.replace(/\n/g,'<br>');
+ return s;
+}
+
+function getKey() {
+ return apiKey || sessionStorage.getItem("groq_key") || "";
+}
+
+function updateKeyStatus() {
+ $("keyStatus").textContent = getKey()
+  ? "● API key connected"
+  : "● API key not connected";
+ $("keyStatus").style.color = getKey() ? "#6fdb9c" : "#9696aa";
+}
+
+function openSettings() {
+ $("apiKey").value = getKey();
+ $("settingsModal").classList.add("open");
+}
+
+function closeSettings() {
+ $("settingsModal").classList.remove("open");
+}
+
+function toggleKeyVisibility() {
+ const el = $("apiKey");
+ el.type = el.type === "password" ? "text" : "password";
+}
+
+function saveSettings() {
+ const key = $("apiKey").value.trim();
+ if (!key || !key.startsWith("gsk_")) {
+  toast("Please enter a valid-looking Groq API key.");
+  return;
+ }
+
+ apiKey = key;
+
+ if ($("rememberKey").checked) {
+  localStorage.setItem("groq_key", key);
+  sessionStorage.removeItem("groq_key");
+ } else {
+  sessionStorage.setItem("groq_key", key);
+  localStorage.removeItem("groq_key");
+ }
+
+ updateKeyStatus();
+ closeSettings();
+ toast("API key saved successfully!");
+}
+
+function removeKey() {
+ apiKey = "";
+ localStorage.removeItem("groq_key");
+ sessionStorage.removeItem("groq_key");
+ $("apiKey").value = "";
+ updateKeyStatus();
+ toast("API key removed");
+}
+
+function loadHistory() {
+ try {
+  conversations = JSON.parse(localStorage.getItem("anurudh_chats") || "[]");
+  if (!Array.isArray(conversations)) conversations = [];
+ } catch {
+  conversations = [];
+ }
+ renderHistory();
+}
+
+function saveHistory() {
+ localStorage.setItem("anurudh_chats", JSON.stringify(conversations));
+ renderHistory();
+}
+
+function renderHistory() {
+ $("history").innerHTML = "";
+ conversations.slice().reverse().forEach(chat => {
+  const div = document.createElement("div");
+  div.className = "history-item" + (chat.id === currentChatId ? " active" : "");
+  div.textContent = "▤ " + (chat.title || "New Chat");
+  div.title = chat.title;
+  div.onclick = () => openChat(chat.id);
+  $("history").appendChild(div);
+ });
+}
+
+function updateConversation() {
+ if (!currentChatId) {
+  currentChatId = Date.now().toString();
+  conversations.push({
+   id: currentChatId,
+   title: "New Chat",
+   messages: []
+  });
+ }
+ const chat = conversations.find(c => c.id === currentChatId);
+ if (chat) {
+  chat.messages = currentMessages;
+  if (chat.title === "New Chat" && currentMessages.length) {
+   chat.title = currentMessages[0].content.slice(0,35);
+  }
+ }
+ saveHistory();
+}
+
+function openChat(id) {
+ const chat = conversations.find(c => c.id === id);
+ if (!chat) return;
+ if (busy) stopGeneration();
+ currentChatId = id;
+ currentMessages = [...chat.messages];
+ renderMessages();
+ renderHistory();
+ $("sidebar").classList.remove("open");
+}
+
+function newChat() {
+ if (busy) stopGeneration();
+ currentChatId = null;
+ currentMessages = [];
+ renderMessages();
+ renderHistory();
+ $("sidebar").classList.remove("open");
+ $("prompt").focus();
+}
+
+function clearAllHistory() {
+ if (!confirm("Delete all saved conversations?")) return;
+ conversations = [];
+ currentMessages = [];
+ currentChatId = null;
+ saveHistory();
+ renderMessages();
+ toast("All chats deleted");
+}
+
+function toggleSidebar() {
+ $("sidebar").classList.toggle("open");
+}
+
+function renderMessages() {
+ const root = $("messages");
+ root.innerHTML = "";
+
+ if (!currentMessages.length) {
+  root.innerHTML = `
+   <div class="welcome">
+    <div class="welcome-logo">✦</div>
+    <h1>Welcome to <span class="gradient">Anurudh AI</span></h1>
+    <p>Your personal AI assistant. Ask anything and start creating.</p>
+    <div class="suggestions">
+     <button class="suggestion" onclick="useSuggestion('Explain artificial intelligence in simple words')">💡 Explain AI simply</button>
+     <button class="suggestion" onclick="useSuggestion('Write a professional website using HTML CSS and JavaScript')">💻 Build a website</button>
+     <button class="suggestion" onclick="useSuggestion('Give me 5 ideas for a new project')">🚀 Project ideas</button>
+     <button class="suggestion" onclick="useSuggestion('Teach me JavaScript from beginner level')">📚 Learn JavaScript</button>
+    </div>
+   </div>`;
+  return;
+ }
+
+ currentMessages.forEach((msg,index) => {
+  addMessageElement(msg,index);
+ });
+ scrollBottom();
+}
+
+function addMessageElement(msg,index) {
+ const root = $("messages");
+ const div = document.createElement("div");
+ div.className = "message " + msg.role;
+
+ const avatar = document.createElement("div");
+ avatar.className = "avatar";
+ avatar.textContent = msg.role === "user" ? "👤" : "✦";
+
+ const body = document.createElement("div");
+ body.className = "message-body";
+
+ const label = document.createElement("div");
+ label.className = "message-label";
+ label.textContent = msg.role === "user" ? "You" : "Anurudh AI";
+
+ const content = document.createElement("div");
+ content.className = "message-content";
+ content.innerHTML = formatText(msg.content);
+
+ body.append(label,content);
+
+ if (msg.role === "assistant") {
+  const actions = document.createElement("div");
+  actions.className = "message-actions";
+  const copy = document.createElement("button");
+  copy.textContent = "▢ Copy";
+  copy.onclick = () => {
+   navigator.clipboard.writeText(msg.content)
+    .then(() => toast("Copied!"))
+    .catch(() => toast("Clipboard unavailable"));
+  };
+  actions.appendChild(copy);
+  body.appendChild(actions);
+ }
+
+ div.append(avatar,body);
+ root.appendChild(div);
+}
+
+function scrollBottom() {
+ $("chatArea").scrollTop = $("chatArea").scrollHeight;
+}
+
+function useSuggestion(text) {
+ $("prompt").value = text;
+ sendMessage();
+}
+
+async function sendMessage() {
+ if (busy) return;
+
+ const text = $("prompt").value.trim();
+ if (!text) return;
+
+ if (!getKey()) {
+  openSettings();
+  toast("Please add your Groq API key first");
+  return;
+ }
+
+ const userMessage = {role:"user",content:text};
+ currentMessages.push(userMessage);
+ $("prompt").value = "";
+ $("prompt").style.height = "auto";
+
+ // Add user message to UI
+ const welcome = $("messages").querySelector(".welcome");
+ if (welcome) welcome.remove();
+ addMessageElement(userMessage,currentMessages.length-1);
+
+ const assistantMessage = {role:"assistant",content:""};
+ currentMessages.push(assistantMessage);
+
+ const root = $("messages");
+ const div = document.createElement("div");
+ div.className = "message assistant";
+ div.innerHTML = `
+  <div class="avatar">✦</div>
+  <div class="message-body">
+   <div class="message-label">Anurudh AI</div>
+   <div class="message-content typing">Thinking...</div>
+  </div>`;
+ root.appendChild(div);
+ const output = div.querySelector(".message-content");
+
+ busy = true;
+ controller = new AbortController();
+ $("sendBtn").disabled = true;
+ $("stopBtn").style.display = "block";
+ scrollBottom();
+
+ try {
+  const response = await fetch(API_URL,{
+   method:"POST",
+   headers:{
+    "Content-Type":"application/json",
+    "Authorization":"Bearer " + getKey()
+   },
+   body:JSON.stringify({
+    model:$("model").value,
+    messages:[
+     {
+      role:"system",
+      content:"You are Anurudh AI, a helpful, friendly and intelligent AI assistant. Answer clearly and accurately. When useful, provide formatted code and step-by-step explanations. Reply in the language used by the user."
+     },
+     ...currentMessages.slice(0,-1)
+    ],
+    temperature:0.7,
+    max_completion_tokens:4096,
+    stream:true
+   }),
+   signal:controller.signal
+  });
+
+  if (!response.ok) {
+   const err = await response.json().catch(() => ({}));
+   throw new Error(err.error?.message || `API Error: ${response.status}`);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let fullText = "";
+  output.classList.remove("typing");
+  output.textContent = "";
+
+  while(true) {
+   const {done,value} = await reader.read();
+   if(done) break;
+
+   buffer += decoder.decode(value,{stream:true});
+   const lines = buffer.split("\n");
+   buffer = lines.pop();
+
+   for(const line of lines) {
+    if(!line.startsWith("data:")) continue;
+    const data = line.slice(5).trim();
+    if(data === "[DONE]") continue;
+
+    try {
+     const json = JSON.parse(data);
+     const token = json.choices?.[0]?.delta?.content || "";
+     fullText += token;
+     output.innerHTML = formatText(fullText);
+     scrollBottom();
+    } catch(e) {}
+   }
+  }
+
+  // Save the completed assistant response
+  assistantMessage.content = fullText || "No response received.";
+  updateConversation();
+
+  // Refresh actions
+  renderMessages();
+
+ } catch(error) {
+  if(error.name === "AbortError") {
+   assistantMessage.content += "\n\n[Generation stopped]";
+   updateConversation();
+   renderMessages();
+  } else {
+   currentMessages.pop();
+   currentMessages.pop();
+   const errorBox = document.createElement("div");
+   errorBox.style.color = "#ff8585";
+   errorBox.style.padding = "14px";
+   errorBox.style.fontSize = "13px";
+   errorBox.textContent = "Error: " + error.message +
+    "\nCheck your API key, model availability and internet connection.";
+   div.querySelector(".message-body").appendChild(errorBox);
+   updateConversation();
+   toast("Something went wrong");
+  }
+ } finally {
+  busy = false;
+  controller = null;
+  $("sendBtn").disabled = false;
+  $("stopBtn").style.display = "none";
+ }
+}
+
+function stopGeneration() {
+ if(controller) controller.abort();
+}
+
+$("prompt").addEventListener("keydown",e => {
+ if(e.key === "Enter" && !e.shiftKey) {
+  e.preventDefault();
+  sendMessage();
+ }
+});
+
+$("prompt").addEventListener("input",function() {
+ this.style.height = "auto";
+ this.style.height = Math.min(this.scrollHeight,180) + "px";
+});
+
+updateKeyStatus();
+loadHistory();
+
+// Automatically show API settings for first-time visitors
+if(!getKey()) {
+ setTimeout(openSettings,500);
+}
+</script>
+</body>
+</html>
